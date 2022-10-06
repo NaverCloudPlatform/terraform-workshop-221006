@@ -6,5 +6,6 @@ export TF_VAR_access_key=$NCLOUD_ACCESS_KEY
 export TF_VAR_secret_key=$NCLOUD_SECRET_KEY
 export TF_LOG=ERROR
 export TF_LOG_PATH="./terraform.log"
+export TF_VAR_temp_user_password='!workshop1234'
 
 alias t=terraform
