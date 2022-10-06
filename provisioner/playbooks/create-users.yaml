@@ -1,0 +1,43 @@
+---
+- name: set user
+  hosts: 
+  - all
+
+  vars:
+    user_names:
+%{ for user_name in user_names ~}
+    - ${user_name}
+%{ endfor ~}
+
+  tasks:
+  - name: create user
+    user:
+      name: "{{ item }}"
+      password: "{{ password | password_hash('sha512') }}"
+      update_password: on_create
+      state: present
+    with_list: "{{ user_names }}"
+    register: user_created
+    notify: expire_password
+
+  - name: create user sudoers file
+    lineinfile:
+      path: "/etc/sudoers.d/{{ item }}"
+      line: "{{ item }} ALL=(ALL) NOPASSWD: ALL"
+      create: yes
+      state: present
+    with_list: "{{ user_names }}"
+
+  - name: set sudoers PATH variable
+    lineinfile:
+      path: "/etc/sudoers"
+      regexp: '^Defaults(\t^|\s)+secure_path' # Single Quotes because escape pipe(|) character
+      line: "Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
+      state: present  
+  
+  handlers:
+  - name: expire password after user creation
+    shell: "chage -d 0 {{ item.name }}"
+    when: item.changed
+    with_list: "{{ user_created.results }}"
+    listen: expire_password

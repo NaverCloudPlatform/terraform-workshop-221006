@@ -1,0 +1,8 @@
+---
+- name: install cla agent
+  hosts:
+  - localhost
+  - all
+  tasks:
+  - shell: "curl -s http://cm.vcla.ncloud.com/setUpClaVPC/{{ configKey }} | sh"
+
